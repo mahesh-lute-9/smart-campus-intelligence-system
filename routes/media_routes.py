@@ -4,9 +4,10 @@ Handles file uploads, downloads, and management
 """
 
 import logging
+from io import BytesIO
+
 from flask import Blueprint, request, jsonify, g, send_file
-from werkzeug.exceptions import RequestEntityTooLarge
-from auth.auth_middleware import token_required, role_required
+from auth.auth_middleware import token_required
 from services.media_service import (
     save_file, get_file_by_id, list_user_files, delete_file,
     make_file_public, ensure_media_table, MAX_FILE_SIZE
@@ -36,7 +37,9 @@ def upload_file():
     result = save_file(
         file,
         user_id=g.user_id,
-        user_type=g.user_role.lower()
+        user_type=g.user_role.lower(),
+        description=description,
+        institution_id=getattr(g, "institution_id", None),
     )
     
     if result.get('success'):
@@ -56,7 +59,8 @@ def list_files():
             user_id=g.user_id,
             user_type=g.user_role.lower(),
             limit=limit,
-            offset=offset
+            offset=offset,
+            institution_id=getattr(g, "institution_id", None),
         )
         
         return jsonify({
@@ -79,16 +83,17 @@ def download_file(file_id):
         file_info = get_file_by_id(
             file_id,
             user_id=g.user_id,
-            user_type=g.user_role.lower()
+            user_type=g.user_role.lower(),
+            institution_id=getattr(g, "institution_id", None),
+            is_super_admin=bool(getattr(g, "user", {}).get("is_super_admin")),
+            include_data=True,
         )
         
-        if not file_info:
+        if not file_info or file_info.get("file_data") is None:
             return jsonify({"error": "File not found or access denied"}), 404
-        
-        file_path = file_info.get('upload_path')
-        
+
         return send_file(
-            file_path,
+            BytesIO(file_info["file_data"]),
             as_attachment=True,
             download_name=file_info.get('original_filename'),
             mimetype=file_info.get('mime_type')
@@ -105,7 +110,8 @@ def remove_file(file_id):
     result = delete_file(
         file_id,
         user_id=g.user_id,
-        user_type=g.user_role.lower()
+        user_type=g.user_role.lower(),
+        institution_id=getattr(g, "institution_id", None),
     )
     
     if result.get('success'):
@@ -124,7 +130,8 @@ def toggle_file_public(file_id):
         file_id,
         user_id=g.user_id,
         user_type=g.user_role.lower(),
-        is_public=is_public
+        is_public=is_public,
+        institution_id=getattr(g, "institution_id", None),
     )
     
     if result.get('success'):

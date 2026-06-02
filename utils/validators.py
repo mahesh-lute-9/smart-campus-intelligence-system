@@ -90,6 +90,7 @@ def validate_roll_number(roll_number):
         raise ValueError("Roll number format is invalid")
     return cleaned
 
+
 class RequestValidator:
     def __init__(self, data):
         self.data = data or {}
@@ -108,7 +109,9 @@ class RequestValidator:
     def sanitize(self, field, max_length=255, allow_empty=False):
         if field in self.data:
             try:
-                self.validated_data[field] = sanitize_string(self.data.get(field), max_length=max_length, allow_empty=allow_empty)
+                self.validated_data[field] = sanitize_string(
+                    self.data.get(field), max_length=max_length, allow_empty=allow_empty
+                )
             except ValueError as e:
                 self.errors.append(f"{field}: {str(e)}")
         return self
@@ -132,7 +135,9 @@ class RequestValidator:
     def integer(self, field, min_val=None, max_val=None):
         if self.data.get(field) is not None:
             try:
-                self.validated_data[field] = validate_integer_range(self.data.get(field), min_val, max_val, field_name=field)
+                self.validated_data[field] = validate_integer_range(
+                    self.data.get(field), min_val, max_val, field_name=field
+                )
             except ValueError as e:
                 self.errors.append(str(e))
         return self
@@ -140,7 +145,9 @@ class RequestValidator:
     def float_num(self, field, min_val=None, max_val=None):
         if self.data.get(field) is not None:
             try:
-                self.validated_data[field] = validate_float_range(self.data.get(field), min_val, max_val, field_name=field)
+                self.validated_data[field] = validate_float_range(
+                    self.data.get(field), min_val, max_val, field_name=field
+                )
             except ValueError as e:
                 self.errors.append(str(e))
         return self

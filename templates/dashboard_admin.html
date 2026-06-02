@@ -28,6 +28,10 @@
     <i class="fas fa-bullhorn nav-icon"></i>
     <span>Notice Board</span>
 </li>
+<li class="nav-item" onclick="focusAdminSection('adminMediaSection', event)">
+    <i class="fas fa-folder nav-icon"></i>
+    <span>Files</span>
+</li>
 {% endblock %}
 
 {% block content %}
@@ -241,6 +245,11 @@
             </div>
         </div>
     </div>
+
+    {% set media_section_id = 'adminMediaSection' %}
+    {% set media_title = 'Admin Files' %}
+    {% set media_subtitle = 'Upload institution reports, circulars, and operational documents' %}
+    {% include 'partials/media_panel.html' %}
 
     <!-- Additional sections like Users, Departments etc. can be kept or simplified -->
     <div class="card card-premium" id="usersSection">

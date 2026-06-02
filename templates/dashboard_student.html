@@ -28,6 +28,9 @@
 <li class="nav-item" onclick="go('/notifications')">
     <i class="fas fa-bell nav-icon"></i><span>Notifications</span>
 </li>
+<li class="nav-item" onclick="document.getElementById('studentMediaSection')?.scrollIntoView({behavior:'smooth', block:'start'})">
+    <i class="fas fa-folder nav-icon"></i><span>Files</span>
+</li>
 {% endblock %}
 
 {% block content %}
@@ -149,6 +152,11 @@
             </div>
         </div>
     </div>
+
+    {% set media_section_id = 'studentMediaSection' %}
+    {% set media_title = 'My Files' %}
+    {% set media_subtitle = 'Upload resumes, notes, certificates, and other campus files' %}
+    {% include 'partials/media_panel.html' %}
 
     <!-- Profile + Insights -->
     <div class="card card-premium">

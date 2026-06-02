@@ -10,10 +10,11 @@ Your project is **fully configured** for Render deployment:
 
 - ✅ `render.yaml` - Complete web service + PostgreSQL configuration
 - ✅ `Procfile` - Gunicorn optimized for Render free tier (2 workers, 2 threads)
-- ✅ All migrations ready (001-013)
+- ✅ All migrations ready (001-014)
 - ✅ Bootstrap with retry logic (handles cold starts)
 - ✅ Health checks configured (`/health/ready`)
 - ✅ Connection pooling optimized (max 5 connections for free tier)
+- ✅ Media uploads stored in PostgreSQL, not Render's ephemeral filesystem
 - ✅ Environment variables auto-generated (JWT_SECRET, SECRET_KEY)
 - ✅ ProxyFix middleware (handles Render's load balancer)
 - ✅ In-process rate limiting (works perfectly for small scale)
@@ -34,6 +35,7 @@ cat requirements.txt | grep -i redis
 
 # 3. Run local tests
 pytest
+# Current baseline: 85 passed
 
 # 4. Test local startup
 python app.py
@@ -85,6 +87,7 @@ git push origin dev
    - ✅ Create PostgreSQL database "smart-campus-db"
    - ✅ Generate JWT_SECRET and SECRET_KEY
    - ✅ Run migrations automatically on first startup
+   - ✅ Store uploaded media bytes in PostgreSQL via migration 014
 
 ### Step 3: Wait for Deployment (5 minutes)
 
@@ -155,6 +158,7 @@ CORS_ALLOWED_ORIGINS=https://yourdomain.com
 - **Database Connections:** Max 5 (optimized)
 - **RAM:** ~400MB per worker
 - **Timeout:** 120 seconds (configured)
+- **Upload Limit:** 50MB per file, stored in PostgreSQL for persistence across deploys
 
 ### What This Means
 - ✅ Supports ~100 concurrent users
@@ -332,7 +336,8 @@ Your deployment is **SUCCESSFUL** when:
 - ✅ Render Dashboard shows "live" status
 - ✅ `/health/live` returns 200 OK
 - ✅ `/health/ready` returns 200 OK
-- ✅ Database has all tables (13 migrations run)
+- ✅ Database has all tables (14 migrations run)
+- ✅ `/media/upload`, `/media/list`, and `/media/<file_id>` work with authenticated users
 - ✅ Can login with test credentials
 - ✅ Dashboard loads (< 2 seconds)
 - ✅ No errors in Render logs

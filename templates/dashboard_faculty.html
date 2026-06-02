@@ -35,6 +35,10 @@
     <i class="fas fa-folder-open nav-icon"></i>
     <span>Study Resources</span>
 </li>
+<li class="nav-item" onclick="focusFacultySection('facultyMediaSection', event)">
+    <i class="fas fa-folder nav-icon"></i>
+    <span>Files</span>
+</li>
 {% endblock %}
 
 {% block content %}
@@ -172,7 +176,7 @@
     </section>
 
     <!-- Resources Section -->
-    <section id="resourcesSection" class="card card-premium">
+    <section id="resourcesSection" class="card card-premium" style="margin-bottom: 32px;">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-folder-open"></i> Study Resources</h3>
         </div>
@@ -214,6 +218,11 @@
             </div>
         </div>
     </section>
+
+    {% set media_section_id = 'facultyMediaSection' %}
+    {% set media_title = 'Faculty Files' %}
+    {% set media_subtitle = 'Upload class material, reports, and faculty documents' %}
+    {% include 'partials/media_panel.html' %}
 </div>
 {% endblock %}
 

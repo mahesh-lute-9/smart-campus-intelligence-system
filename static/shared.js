@@ -310,6 +310,196 @@ function formatDate(dateStr) {
  * Returns a Promise<boolean>. Shows a styled modal instead of browser confirm().
  * Options: { title, message, confirmText, danger }
  */
+// Media upload/download helpers
+
+function formatFileSize(bytes) {
+    const size = Number(bytes || 0);
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getAuthHeaders() {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: "Bearer " + token } : {};
+}
+
+async function fetchMediaBlob(fileId) {
+    const response = await fetch(`/media/${encodeURIComponent(fileId)}`, {
+        headers: getAuthHeaders(),
+        credentials: "same-origin",
+    });
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || data.message || `Download failed (${response.status})`);
+    }
+
+    return {
+        blob: await response.blob(),
+        contentDisposition: response.headers.get("Content-Disposition") || "",
+    };
+}
+
+function getDownloadFilename(contentDisposition, fallback) {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/i);
+    return match ? match[1] : fallback;
+}
+
+async function downloadMediaFile(fileId, filename) {
+    try {
+        const { blob, contentDisposition } = await fetchMediaBlob(fileId);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = getDownloadFilename(contentDisposition, filename || "download");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        showToast(error.message || "Unable to download file.", "error");
+    }
+}
+
+async function deleteMediaFile(panel, fileId) {
+    const ok = await confirmAction({
+        title: "Delete file",
+        message: "This file will be removed from media storage.",
+        confirmText: "Delete",
+        danger: true,
+    });
+    if (!ok) return;
+
+    try {
+        await fetchAuth(`/media/${encodeURIComponent(fileId)}`, { method: "DELETE" });
+        showToast("File deleted.", "success");
+        loadMediaFiles(panel);
+    } catch (error) {
+        showToast(error.message || "Unable to delete file.", "error");
+    }
+}
+
+async function toggleMediaPublic(panel, fileId, isPublic) {
+    try {
+        await fetchAuth(`/media/${encodeURIComponent(fileId)}/public`, {
+            method: "PUT",
+            body: JSON.stringify({ is_public: isPublic }),
+        });
+        showToast(isPublic ? "File is public." : "File is private.", "success");
+        loadMediaFiles(panel);
+    } catch (error) {
+        showToast(error.message || "Unable to update file.", "error");
+    }
+}
+
+function renderMediaFiles(panel, files) {
+    const tbody = panel.querySelector("[data-media-files]");
+    if (!tbody) return;
+
+    if (!files.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No files uploaded yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = files.map((file) => {
+        const fileId = escapeHtml(file.file_id);
+        const filename = escapeHtml(file.filename || "Untitled file");
+        const description = file.description
+            ? `<div class="fs-12 text-muted">${escapeHtml(file.description)}</div>`
+            : "";
+        const uploadedAt = file.created_at ? formatDate(file.created_at) : "";
+        const publicIcon = file.is_public ? "fa-lock-open" : "fa-lock";
+        const publicTitle = file.is_public ? "Make private" : "Make public";
+
+        return `
+            <tr>
+                <td>
+                    <strong>${filename}</strong>
+                    <div class="fs-12 text-muted">${escapeHtml(file.mime_type || file.type || "file")}</div>
+                    ${description}
+                </td>
+                <td>${formatFileSize(file.size)}</td>
+                <td>${uploadedAt}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline" type="button"
+                        onclick="downloadMediaFile('${fileId}', '${filename}')"
+                        title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" type="button"
+                        onclick="toggleMediaPublic(this.closest('[data-media-panel]'), '${fileId}', ${!file.is_public})"
+                        title="${publicTitle}">
+                        <i class="fas ${publicIcon}"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" type="button"
+                        onclick="deleteMediaFile(this.closest('[data-media-panel]'), '${fileId}')"
+                        title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>`;
+    }).join("");
+}
+
+async function loadMediaFiles(panel) {
+    const tbody = panel.querySelector("[data-media-files]");
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Loading files...</td></tr>';
+    }
+
+    try {
+        const data = await fetchAuth("/media/list");
+        renderMediaFiles(panel, data.files || []);
+    } catch (error) {
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Unable to load files.</td></tr>';
+        }
+    }
+}
+
+function initMediaPanel(panel) {
+    if (!panel || panel.dataset.mediaReady === "true") return;
+    panel.dataset.mediaReady = "true";
+
+    const form = panel.querySelector("[data-media-upload-form]");
+    if (form) {
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const button = form.querySelector('button[type="submit"]');
+            const formData = new FormData(form);
+
+            setLoading(button, true);
+            try {
+                const result = await fetchAuth("/media/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+                if (result.error) throw new Error(result.error);
+                showToast("File uploaded.", "success");
+                form.reset();
+                loadMediaFiles(panel);
+            } catch (error) {
+                showToast(error.message || "Unable to upload file.", "error");
+            } finally {
+                setLoading(button, false);
+            }
+        });
+    }
+
+    loadMediaFiles(panel);
+}
+
+function initMediaPanels() {
+    document.querySelectorAll("[data-media-panel]").forEach(initMediaPanel);
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initMediaPanels);
+} else {
+    initMediaPanels();
+}
+
 function confirmAction({ title = "Confirm", message = "Are you sure?", confirmText = "Confirm", danger = false } = {}) {
     return new Promise((resolve) => {
         // Remove any existing modal
