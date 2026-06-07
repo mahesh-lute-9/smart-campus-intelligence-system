@@ -3,7 +3,6 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='ai-assistant-modern.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='ai_assistant.css') }}">
 {% endblock %}
 
 {% block breadcrumb %}Dashboard{% endblock %}
@@ -18,6 +17,12 @@
 </li>
 <li class="nav-item" onclick="go('/student-skills')">
     <i class="fas fa-star nav-icon"></i><span>Skills</span>
+</li>
+<li class="nav-item" onclick="go('/skill-gap')">
+    <i class="fas fa-chart-bar nav-icon"></i><span>Skill Gap</span>
+</li>
+<li class="nav-item" onclick="go('/leaderboard')">
+    <i class="fas fa-trophy nav-icon"></i><span>Leaderboard</span>
 </li>
 <li class="nav-item" onclick="go('/student-profile')">
     <i class="fas fa-user-circle nav-icon"></i><span>Profile</span>

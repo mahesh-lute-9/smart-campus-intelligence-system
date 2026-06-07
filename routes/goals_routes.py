@@ -5,6 +5,7 @@ RESTful endpoints for student goals, milestones, badges and summaries.
 """
 from flask import Blueprint, request, jsonify
 from auth.auth_middleware import token_required, role_required
+from auth.current_user import current_institution_id, current_is_super_admin, current_user_id
 from services.goals_service import (
     create_goal, get_student_goals, update_goal_progress,
     update_goal, delete_goal, get_milestones, add_milestone,
@@ -19,8 +20,8 @@ goals_bp = Blueprint("goals", __name__, url_prefix="/api/goals")
 
 
 def _student_id():
-    user_id = request.user.get("user_id")  # type: ignore[attr-defined]
-    student = get_student_record_by_user_id(user_id, institution_id=request.user.get("institution_id"))  # type: ignore[attr-defined]
+    user_id = current_user_id()
+    student = get_student_record_by_user_id(user_id, institution_id=current_institution_id())
     if not student:
         return None
     return student["id"]
@@ -201,7 +202,7 @@ def toggle_ms(milestone_id):
 @role_required("Admin")
 def student_summary(student_id):
     """GET /api/goals/student/<id>/summary  – admin view of a student's goals."""
-    institution_id = None if request.user.get("is_super_admin") else request.user.get("institution_id")  # type: ignore[attr-defined]
+    institution_id = None if current_is_super_admin() else current_institution_id()
     if not get_student_profile(student_id, institution_id=institution_id):
         return error_response("Student not found", 404)
 

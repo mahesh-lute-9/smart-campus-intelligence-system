@@ -4,6 +4,7 @@ Theme Routes - API endpoints for theme management
 
 from flask import Blueprint, jsonify, request
 from auth.auth_middleware import token_required
+from auth.current_user import current_user
 from services.theme_service import ThemeService
 
 theme_bp = Blueprint('theme', __name__, url_prefix='/api/theme')
@@ -19,7 +20,7 @@ def get_user_theme():
         JSON with theme name
     """
     try:
-        user = request.user  # type: ignore
+        user = current_user()
         user_id = user.get('user_id')
         
         if not user_id:
@@ -53,7 +54,7 @@ def set_user_theme():
         JSON with success status and new theme
     """
     try:
-        user = request.user  # type: ignore
+        user = current_user()
         user_id = user.get('user_id')
         
         if not user_id:
@@ -96,7 +97,7 @@ def toggle_user_theme():
         JSON with new theme and previous theme
     """
     try:
-        user = request.user  # type: ignore
+        user = current_user()
         user_id = user.get('user_id')
         
         if not user_id:
@@ -127,7 +128,7 @@ def get_theme_stats():
         JSON with light/dark theme user counts
     """
     try:
-        user = request.user  # type: ignore
+        user = current_user()
         role_id = user.get('role_id')
         
         # Only admins can view stats

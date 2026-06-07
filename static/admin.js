@@ -903,11 +903,10 @@ async function deleteUser(id) {
 
 async function downloadAdminExport(exportName) {
     try {
-        const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: "Bearer " + token } : {};
+        // Cookie is sent automatically — no manual auth header needed
         const response = await fetch("/admin/exports/" + encodeURIComponent(exportName), {
             method: "GET",
-            headers,
+            credentials: "same-origin",
         });
 
         if (!response.ok) {
@@ -934,4 +933,17 @@ async function downloadAdminExport(exportName) {
         console.error(error);
         showAdminMessage(error.message || "Unable to download export.", "error");
     }
+}
+
+// ── Placement KPI widget on admin dashboard ──────────────────────────────────
+async function loadPlacementKPI() {
+    try {
+        const res = await fetchAuth("/placement/stats/summary");
+        if (!res || !res.success) return;
+        const s = res.data;
+        const el = document.getElementById("adminPlacementRate");
+        const sub = document.getElementById("adminPlacementSub");
+        if (el) el.textContent = (s.placement_rate || 0) + "%";
+        if (sub) sub.textContent = s.placed_students + " placed · Avg " + (s.avg_package || 0).toFixed(1) + " LPA";
+    } catch (_) { /* silent — placement stats are optional */ }
 }

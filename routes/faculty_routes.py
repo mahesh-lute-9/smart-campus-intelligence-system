@@ -3,6 +3,7 @@ import logging
 from flask import Blueprint, jsonify, request
 
 from auth.auth_middleware import role_required, token_required
+from auth.current_user import current_institution_id
 from database import get_db_connection
 from services.readiness_service import calculate_readiness
 
@@ -16,7 +17,7 @@ faculty_bp = Blueprint("faculty_bp", __name__)
 @role_required("Faculty")
 def get_all_students_performance():
     try:
-        institution_id = request.user.get("institution_id")  # type: ignore[attr-defined]
+        institution_id = current_institution_id()
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
@@ -55,14 +56,12 @@ def get_all_students_performance():
 @role_required("Faculty")
 def add_marks():
     try:
-        from flask import request
-
         data = request.get_json()
 
         student_id = data["student_id"]
         subject_id = data["subject_id"]
         marks = data["marks"]
-        institution_id = request.user.get("institution_id")  # type: ignore[attr-defined]
+        institution_id = current_institution_id()
 
         with get_db_connection() as conn:
             with conn.cursor() as cur:

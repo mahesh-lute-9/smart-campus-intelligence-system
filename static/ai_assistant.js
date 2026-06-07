@@ -1,7 +1,7 @@
 /**
  * Campus AI Assistant
  * ───────────────────
- * Reads user role from localStorage (set at login by auth.js).
+ * Reads user role from sessionStorage (display metadata only — auth via HttpOnly cookie).
  * Routes to the correct endpoint:
  *   Student  → POST /ai/chat/student   {message}
  *   Faculty  → POST /ai/chat/faculty   {query}
@@ -12,8 +12,8 @@
 (function () {
   "use strict";
 
-  const ROLE = (localStorage.getItem("role_name") || "").toLowerCase();
-  const NAME = localStorage.getItem("user_name") || "there";
+  const ROLE = (sessionStorage.getItem("role_name") || "").toLowerCase();
+  const NAME = sessionStorage.getItem("user_name") || "there";
 
   // Admins don't have an AI advisor — don't render the widget
   if (ROLE === "admin") return;
@@ -186,13 +186,12 @@
     const body = ROLE === "faculty" ? { query: message } : { message };
 
     try {
-      const token = localStorage.getItem("token");
+      
       const res = await fetch(endpoint, {
         method: "POST",
         credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: "Bearer " + token } : {}),
         },
         body: JSON.stringify(body),
       });

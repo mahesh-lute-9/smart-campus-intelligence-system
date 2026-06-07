@@ -334,7 +334,7 @@ def remove_user(current_user, user_id):
     try:
         deleted_user = delete_user(
             user_id,
-            current_user_id=request.user["user_id"],
+            current_user_id=current_user.get("user_id"),
             institution_id=None if current_user.get("is_super_admin") else current_user.get("institution_id"),
         )
         record_audit_event(
@@ -417,4 +417,35 @@ def create_admin_institution(current_user):
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception:
+        return jsonify({"error": "An internal error occurred"}), 500
+
+
+# ── Admin dashboard summary (merged from admin_dashboard_routes.py) ───────────
+@admin_bp.route("/admin/dashboard/summary", methods=["GET"])
+@token_required
+@role_required("Admin")
+def admin_dashboard_summary():
+    """Institution-level KPI summary for the admin dashboard."""
+    from services.admin_dashboard_service import get_admin_dashboard
+    try:
+        return jsonify(get_admin_dashboard()), 200
+    except Exception as exc:
+        logger.exception("admin_dashboard_summary failed")
+        return jsonify({"error": "An internal error occurred"}), 500
+
+
+@admin_bp.route("/students", methods=["GET"])
+@token_required
+def get_students_list():
+    """Paginated + filterable student list. Used by placement form search."""
+    from services.readiness_service import get_all_scored_students
+    try:
+        q    = request.args.get("q") or request.args.get("search")
+        dept = request.args.get("department")
+        sort = request.args.get("sort", "desc")
+        per  = min(int(request.args.get("per_page", 20)), 100)
+        students = get_all_scored_students(search=q, department=dept, sort_order=sort)
+        return jsonify({"success": True, "data": students[:per], "count": len(students)}), 200
+    except Exception as exc:
+        logger.exception("get_students_list failed")
         return jsonify({"error": "An internal error occurred"}), 500

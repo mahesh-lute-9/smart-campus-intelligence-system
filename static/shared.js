@@ -1,8 +1,33 @@
 /* ─────────────────────────────────────────────────────────────────────────────
  * shared.js  –  Global utilities for Smart Campus Intelligence System
  * ─────────────────────────────────────────────────────────────────────────────
- * Loaded on every authenticated page via base.html
+ * SECURITY NOTE (2026-06):
+ *   Auth token is stored ONLY in an HttpOnly secure cookie set by the server.
+ *   JS can never read the token — preventing XSS-based token theft.
+ *   sessionStorage holds only non-sensitive display metadata (name, role).
  * ───────────────────────────────────────────────────────────────────────────── */
+
+"use strict";
+
+// ── Session metadata (display-only, not security) ─────────────────────────────
+
+const _SESSION_KEYS = ["user_name", "user_email", "role_id", "role_name", "institution_id"];
+
+function _getSession(key) {
+    return sessionStorage.getItem(key) || "";
+}
+
+function _setSession(user) {
+    sessionStorage.setItem("user_name",       user.name        || "");
+    sessionStorage.setItem("user_email",      user.email       || "");
+    sessionStorage.setItem("role_id",         String(user.role_id || ""));
+    sessionStorage.setItem("role_name",       (user.role_name  || "").toLowerCase());
+    sessionStorage.setItem("institution_id",  String(user.institution_id || ""));
+}
+
+function _clearSession() {
+    _SESSION_KEYS.forEach((k) => sessionStorage.removeItem(k));
+}
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 
@@ -14,54 +39,49 @@ function go(path) {
 
 async function logout() {
     try {
+        // Cookie is sent automatically — no need to pass Authorization header
         await fetch("/auth/logout", {
             method: "POST",
             credentials: "same-origin",
-            headers: {
-                Authorization: localStorage.getItem("token")
-                    ? "Bearer " + localStorage.getItem("token")
-                    : "",
-            },
         });
     } catch (_) {
         // Ignore network errors — clear local state regardless
     }
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("role_id");
-    localStorage.removeItem("role_name");
-    localStorage.removeItem("user_name");
+    _clearSession();
     window.location.href = "/";
 }
 
 /**
- * Guard pages: redirect to login if token is missing or role is wrong.
- * Call at the top of each dashboard JS file.
+ * Client-side guard: redirect to login if no session metadata is present.
+ * Real security enforcement happens server-side via the HttpOnly cookie.
+ * Role check here is for UX only (e.g., student visiting /admin-dashboard).
  */
 function requireAuth(expectedRoles = []) {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    const roleName = _getSession("role_name");
+
+    if (!roleName) {
+        // No session metadata — send to login; server will enforce on any API call too
         window.location.href = "/";
         return false;
     }
+
     if (Array.isArray(expectedRoles) && expectedRoles.length) {
-        const currentRole = (localStorage.getItem("role_name") || "").toLowerCase();
         const allowedRoles = expectedRoles.map((r) => String(r).toLowerCase());
-        if (!allowedRoles.includes(currentRole)) {
+        if (!allowedRoles.includes(roleName.toLowerCase())) {
             window.location.href = "/";
             return false;
         }
     }
+
     return true;
 }
 
 // ── Topbar user info ──────────────────────────────────────────────────────────
-// FIX: base.html expected user.first_name; auth.js stores user.name — normalised here.
 
 function syncTopbarUser() {
-    const name  = localStorage.getItem("user_name") || "";
-    const role  = localStorage.getItem("role_name") || "User";
-    const email = localStorage.getItem("user_email") || "";
+    const name  = _getSession("user_name");
+    const role  = _getSession("role_name") || "User";
+    const email = _getSession("user_email");
     const displayName = name || email || "User";
 
     const nameElem  = document.getElementById("topbarUserName");
@@ -72,11 +92,10 @@ function syncTopbarUser() {
     if (roleElem)  roleElem.textContent  = role.charAt(0).toUpperCase() + role.slice(1);
     if (emailElem) emailElem.textContent = email || displayName;
 
-    // Personalise the topbar title: "Welcome back, Student"
+    // Personalise the topbar title
     const titleEl = document.getElementById("topbarTitle");
     if (titleEl && role) {
         const roleCap = role.charAt(0).toUpperCase() + role.slice(1);
-        // Only override if it still shows generic text
         const txt = titleEl.textContent.trim();
         if (txt === "Overview" || txt === "Welcome back, User") {
             titleEl.textContent = "Welcome back, " + roleCap;
@@ -85,10 +104,13 @@ function syncTopbarUser() {
 
     // Role-based sidebar logo icon
     const iconEl = document.getElementById("sidebarIcon");
-    const icons = { student:"fas fa-user-graduate", faculty:"fas fa-chalkboard-user", admin:"fas fa-crown" };
+    const icons = {
+        student: "fas fa-user-graduate",
+        faculty: "fas fa-chalkboard-user",
+        admin:   "fas fa-crown",
+    };
     if (iconEl && icons[role.toLowerCase()]) iconEl.className = icons[role.toLowerCase()];
 
-    // Role-based avatar icon
     const avatarIcon = document.getElementById("topbarAvatarIcon");
     if (avatarIcon && icons[role.toLowerCase()]) avatarIcon.className = icons[role.toLowerCase()];
 }
@@ -97,15 +119,14 @@ document.addEventListener("DOMContentLoaded", syncTopbarUser);
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
 
+/**
+ * Authenticated fetch — relies on the HttpOnly cookie sent automatically
+ * by the browser. No token handling in JS needed.
+ */
 async function fetchJson(path, options = {}) {
-    const token = localStorage.getItem("token");
     const headers = { ...(options.headers || {}) };
 
-    if (token) {
-        headers.Authorization = "Bearer " + token;
-    }
-
-    // Auto-set Content-Type for JSON string bodies (POST/PUT/PATCH)
+    // Auto-set Content-Type for JSON string bodies
     if (options.body && typeof options.body === "string" && !headers["Content-Type"]) {
         headers["Content-Type"] = "application/json";
     }
@@ -113,15 +134,15 @@ async function fetchJson(path, options = {}) {
     const response = await fetch(path, {
         ...options,
         headers,
-        credentials: "same-origin",
+        credentials: "same-origin", // Ensures HttpOnly cookie is sent
     });
 
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        // Token expired → redirect to login
+        // Session expired or invalid cookie — clear metadata and redirect
         if (response.status === 401) {
-            localStorage.clear();
+            _clearSession();
             window.location.href = "/";
             return;
         }
@@ -292,25 +313,19 @@ function escapeHtml(str) {
 function timeAgo(dateStr) {
     const date = new Date(dateStr);
     const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (diff < 60)   return "just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 60)    return "just now";
+    if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
 }
 
 function formatDate(dateStr) {
-    if (!dateStr) return "—";
+    if (!dateStr) return "\u2014";
     const d = new Date(dateStr);
     return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
-// ── Confirm dialog (used by admin actions) ────────────────────────────────────
-
-/**
- * Returns a Promise<boolean>. Shows a styled modal instead of browser confirm().
- * Options: { title, message, confirmText, danger }
- */
-// Media upload/download helpers
+// ── Media helpers ─────────────────────────────────────────────────────────────
 
 function formatFileSize(bytes) {
     const size = Number(bytes || 0);
@@ -319,14 +334,9 @@ function formatFileSize(bytes) {
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function getAuthHeaders() {
-    const token = localStorage.getItem("token");
-    return token ? { Authorization: "Bearer " + token } : {};
-}
-
 async function fetchMediaBlob(fileId) {
+    // Cookie sent automatically — no manual auth header needed
     const response = await fetch(`/media/${encodeURIComponent(fileId)}`, {
-        headers: getAuthHeaders(),
         credentials: "same-origin",
     });
 
@@ -409,7 +419,7 @@ function renderMediaFiles(panel, files) {
             ? `<div class="fs-12 text-muted">${escapeHtml(file.description)}</div>`
             : "";
         const uploadedAt = file.created_at ? formatDate(file.created_at) : "";
-        const publicIcon = file.is_public ? "fa-lock-open" : "fa-lock";
+        const publicIcon  = file.is_public ? "fa-lock-open" : "fa-lock";
         const publicTitle = file.is_public ? "Make private" : "Make public";
 
         return `
@@ -500,9 +510,10 @@ if (document.readyState === "loading") {
     initMediaPanels();
 }
 
+// ── Confirm dialog ────────────────────────────────────────────────────────────
+
 function confirmAction({ title = "Confirm", message = "Are you sure?", confirmText = "Confirm", danger = false } = {}) {
     return new Promise((resolve) => {
-        // Remove any existing modal
         document.getElementById("__confirm-modal")?.remove();
 
         const overlay = document.createElement("div");
@@ -543,4 +554,12 @@ function confirmAction({ title = "Confirm", message = "Are you sure?", confirmTe
             if (e.key === "Escape") { cleanup(false); document.removeEventListener("keydown", handler); }
         });
     });
+}
+
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+
+function toggleTheme() {
+    const isDark = document.body.classList.toggle("dark-mode");
+    localStorage.setItem("dark_mode", String(isDark));
+    showToast(isDark ? "Dark mode on" : "Light mode on", "info", 1500);
 }

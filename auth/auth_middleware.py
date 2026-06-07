@@ -4,6 +4,7 @@ from functools import wraps
 import jwt
 from flask import g, jsonify, request
 
+from auth.current_user import current_user
 from config import settings
 from database import get_db_connection
 
@@ -66,18 +67,16 @@ def token_required(f):
                         if cur.fetchone():
                             return jsonify({"error": "Token has been revoked"}), 401
 
-            current_user = _build_current_user(payload)
-            request.user_id = current_user.get("user_id")
-            request.user = current_user  # type: ignore[attr-defined]
-            request.environ["user"] = current_user
-            g.user = current_user
-            g.user_id = current_user.get("user_id")
-            g.user_role = current_user.get("role")
-            g.user_name = current_user.get("name", "")  # FIX: was missing, caused AttributeError in ai_routes
-            g.institution_id = current_user.get("institution_id") or getattr(g, "institution_id", None)
-            g.institution_code = current_user.get("institution_code") or getattr(g, "institution_code", None)
-            if current_user.get("institution_name"):
-                g.institution_name = current_user.get("institution_name")
+            user = _build_current_user(payload)
+            request.environ["user"] = user
+            g.user = user
+            g.user_id = user.get("user_id")
+            g.user_role = user.get("role")
+            g.user_name = user.get("name", "")  # FIX: was missing, caused AttributeError in ai_routes
+            g.institution_id = user.get("institution_id") or getattr(g, "institution_id", None)
+            g.institution_code = user.get("institution_code") or getattr(g, "institution_code", None)
+            if user.get("institution_name"):
+                g.institution_name = user.get("institution_name")
 
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Token expired"}), 401
@@ -85,7 +84,7 @@ def token_required(f):
             return jsonify({"error": "Invalid token"}), 401
 
         if expects_current_user and "current_user" not in kwargs:
-            kwargs["current_user"] = request.user  # type: ignore[attr-defined]
+            kwargs["current_user"] = user
 
         return f(*args, **kwargs)
 
@@ -96,10 +95,11 @@ def role_required(*required_roles):
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            if not hasattr(request, "user"):
+            user = current_user()
+            if not user:
                 return jsonify({"error": "Unauthorized"}), 401
 
-            user_role = request.user.get("role_name") or ROLE_MAP.get(request.user.get("role_id"))
+            user_role = user.get("role_name") or ROLE_MAP.get(user.get("role_id"))
 
             if user_role not in required_roles:
                 return jsonify({"error": f"Access denied. Required roles: {', '.join(required_roles)}"}), 403

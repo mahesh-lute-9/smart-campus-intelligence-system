@@ -2,7 +2,7 @@
 Reusable schemas and helpers for request validation, response formatting, and pagination.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import bleach
 from marshmallow import Schema, ValidationError, fields, validate
@@ -14,7 +14,7 @@ class PaginationQuerySchema(Schema):
     sort_by = fields.Str(load_default="created_at")
     sort_order = fields.Str(load_default="desc", validate=validate.OneOf(["asc", "desc"]))
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -40,6 +40,10 @@ class SanitizedEmail(fields.Email):
         return value.lower().strip() if value else value
 
 
+def utc_timestamp():
+    return datetime.now(UTC).isoformat()
+
+
 class StudentCreateSchema(Schema):
     name = SanitizedString(required=True, max_length=200, validate=validate.Length(min=2, max=200))
     email = SanitizedEmail(required=True)
@@ -48,7 +52,7 @@ class StudentCreateSchema(Schema):
     phone = fields.Str(required=False, allow_none=True, validate=validate.Length(max=20))
     date_of_birth = fields.Date(required=False, allow_none=True, format="%Y-%m-%d")
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -59,7 +63,7 @@ class StudentUpdateSchema(Schema):
     phone = fields.Str(required=False, allow_none=True, validate=validate.Length(max=20))
     date_of_birth = fields.Date(required=False, allow_none=True, format="%Y-%m-%d")
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -70,7 +74,7 @@ class UserCreateSchema(Schema):
     role = fields.Str(required=True, validate=validate.OneOf(["Admin", "Faculty", "Student", "Super_Admin"]))
     phone = fields.Str(required=False, allow_none=True)
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -79,7 +83,7 @@ class DepartmentCreateSchema(Schema):
     code = SanitizedString(required=True, max_length=10, validate=validate.Length(min=1, max=10))
     description = SanitizedString(required=False, allow_none=True, max_length=500)
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -89,7 +93,7 @@ class SubjectCreateSchema(Schema):
     department_id = fields.Int(required=False, allow_none=True, validate=validate.Range(min=1))
     credits = fields.Float(required=False, allow_none=True, validate=validate.Range(min=0, max=10))
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -99,7 +103,7 @@ class MarkEntrySchema(Schema):
     marks = fields.Float(required=True, validate=validate.Range(min=0, max=100))
     date = fields.Date(required=False, allow_none=True, format="%Y-%m-%d")
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -115,7 +119,7 @@ class GoalCreateSchema(Schema):
         load_default="not_started",
     )
 
-    class Meta:
+    class Meta:  # type: ignore
         ordered = True
 
 
@@ -132,7 +136,7 @@ def get_paginated_response_data(data, page, per_page, total):
             "has_next": page < total_pages,
             "has_prev": page > 1,
         },
-        "meta": {"timestamp": datetime.utcnow().isoformat()},
+        "meta": {"timestamp": utc_timestamp()},
     }
 
 
@@ -152,5 +156,5 @@ def create_error_response(code, message, status_code=400, details=None):
             "message": message,
             "details": details or {},
         },
-        "meta": {"timestamp": datetime.utcnow().isoformat()},
+        "meta": {"timestamp": utc_timestamp()},
     }, status_code

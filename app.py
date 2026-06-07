@@ -11,9 +11,9 @@ from config import settings
 from core.logging_config import configure_logging
 from core.request_context import register_request_context
 from core.security_headers import apply_security_headers
+from core.csrf_protection import register_csrf_protection
 from core.tenant_context import register_tenant_context
 from database import get_db_connection
-from routes.admin_dashboard_routes import admin_dashboard_bp
 from routes.admin_routes import admin_bp
 from routes.attendance_routes import attendance_bp
 from routes.faculty_dashboard_routes import faculty_dashboard_bp
@@ -24,19 +24,16 @@ from routes.mock_routes import mock_bp
 from routes.prediction_routes import prediction_bp
 from routes.notification_routes import notification_bp
 from routes.readiness_routes import readiness_bp
-from routes.skills_routes import skills_bp
 from routes.student_routes import student_bp
 from routes.student_skill_routes import student_skill_bp
 from routes.subject_routes import subject_bp
-from routes.theme_routes import theme_bp
 from routes.peer_learning_routes import peer_learning_bp
-from routes.wellbeing_routes import wellbeing_bp
 from routes.ai_routes import ai_bp
 from routes.notice_routes import notice_bp
-from routes.resource_routes import resource_bp
 from routes.company_routes import company_bp
 from routes.media_routes import media_bp
 from routes.export_routes import export_bp
+from routes.placement_routes import placement_bp
 from services.attendance_service import ensure_attendance_table_consistency
 from services.faculty_dashboard_service import ensure_intervention_table_consistency
 from services.goals_service import ensure_goals_tables
@@ -47,14 +44,13 @@ from services.realtime_notification_service import RealtimeNotificationService
 from services.skills_service import ensure_skills_table_consistency
 from services.student_service import ensure_student_table_consistency
 from services.subject_service import ensure_subject_table_consistency
-from services.theme_service import ThemeService
 from services.notice_board_service import NoticeBoardService
-from services.resources_service import ResourcesService
 from services.ai_conversation_service import ensure_ai_tables_consistency
 from services.company_matching_service import ensure_companies_table_consistency
 from services.peer_learning_service import ensure_peer_tables_consistency
 from services.audit_service import ensure_audit_table
 from services.media_service import initialize_media, ensure_media_table
+from services.placement_statistics_service import ensure_outcomes_tables
 
 configure_logging(settings.log_level)
 logger = logging.getLogger(__name__)
@@ -78,6 +74,7 @@ if settings.trust_proxy_count > 0:
     )
 
 apply_security_headers(app)
+register_csrf_protection(app)
 register_request_context(app)
 register_tenant_context(app)
 
@@ -113,10 +110,9 @@ def bootstrap_with_retry(retries=5, delay=3):
             ensure_audit_table()
             ensure_media_table()
             initialize_media()
+            ensure_outcomes_tables()
             RealtimeNotificationService.ensure_notifications_table()
-            ThemeService.ensure_theme_table()
             NoticeBoardService.ensure_notices_table()
-            ResourcesService.ensure_resources_table()
             return True
         except Exception as e:
             if attempt < retries - 1:
@@ -146,25 +142,21 @@ app.register_blueprint(subject_bp)
 app.register_blueprint(attendance_bp)
 app.register_blueprint(marks_bp)
 app.register_blueprint(readiness_bp)
-app.register_blueprint(skills_bp)
 app.register_blueprint(mock_bp)
 app.register_blueprint(faculty_bp)
 app.register_blueprint(faculty_dashboard_bp)
 app.register_blueprint(student_skill_bp)
-app.register_blueprint(admin_dashboard_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(prediction_bp)
-app.register_blueprint(theme_bp)
 app.register_blueprint(notification_bp)
 app.register_blueprint(goals_bp)
 app.register_blueprint(peer_learning_bp)
-app.register_blueprint(wellbeing_bp)
 app.register_blueprint(ai_bp)
 app.register_blueprint(notice_bp)
 app.register_blueprint(company_bp)
-app.register_blueprint(resource_bp)
 app.register_blueprint(media_bp)
 app.register_blueprint(export_bp)
+app.register_blueprint(placement_bp)
 
 
 # --- Global error handlers ---

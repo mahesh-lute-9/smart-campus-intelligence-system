@@ -4,6 +4,7 @@ from flask import Blueprint, request, jsonify
 from services.skills_service import add_skill, assign_skill, get_student_skills
 from services.student_service import get_student_profile, get_student_record_by_user_id
 from auth.auth_middleware import token_required, role_required
+from auth.current_user import current_institution_id, current_user_id
 
 skills_bp = Blueprint("skills_bp", __name__)
 
@@ -35,7 +36,7 @@ def assign_skill_to_student():
 
         student_id = data["student_id"]
         skill_id = data["skill_id"]
-        if not get_student_profile(student_id, institution_id=request.user.get("institution_id")):  # type: ignore[attr-defined]
+        if not get_student_profile(student_id, institution_id=current_institution_id()):
             return jsonify({"error": "Student not found"}), 404
 
         action = assign_skill(student_id, skill_id, data.get("skill_level"))
@@ -54,7 +55,7 @@ def assign_skill_to_student():
 @role_required("Student")
 def get_my_skills():
     try:
-        student = get_student_record_by_user_id(request.user["user_id"], institution_id=request.user.get("institution_id"))
+        student = get_student_record_by_user_id(current_user_id(), institution_id=current_institution_id())
 
         if not student:
             return jsonify({"error": "Student not found"}), 404

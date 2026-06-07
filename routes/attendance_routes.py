@@ -7,6 +7,7 @@ from services.attendance_service import (
     save_attendance_percentage,
 )
 from auth.auth_middleware import token_required, role_required
+from auth.current_user import current_institution_id, current_user_id
 from utils.validators import RequestValidator
 from utils.pagination import PaginationHelper
 from utils.schemas import create_error_response
@@ -34,7 +35,7 @@ def add_attendance():
 
         student_id = v.validated_data["student_id"]
         subject_id = v.validated_data["subject_id"]
-        if not get_student_profile(student_id, institution_id=request.user.get("institution_id")):  # type: ignore[attr-defined]
+        if not get_student_profile(student_id, institution_id=current_institution_id()):
             return jsonify({"error": "Student not found"}), 404
 
         if "attendance_percentage" in v.validated_data:
@@ -73,7 +74,7 @@ def view_attendance():
             error_resp, status_code = create_error_response("INVALID_PARAMS", "Invalid pagination parameters", 400, errors)
             return jsonify(error_resp), status_code
 
-        student = get_student_record_by_user_id(request.user["user_id"], institution_id=request.user.get("institution_id"))
+        student = get_student_record_by_user_id(current_user_id(), institution_id=current_institution_id())
         if not student:
             return jsonify({"error": "Student not found"}), 404
 

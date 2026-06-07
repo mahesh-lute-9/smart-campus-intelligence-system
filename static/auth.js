@@ -366,11 +366,11 @@ async function login() {
         }
 
         // Store credentials
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user_email", data.user.email);
-        localStorage.setItem("role_id", data.user.role_id);
-        localStorage.setItem("role_name", data.user.role_name || "");
-        localStorage.setItem("user_name", data.user.name || "");
+        
+        sessionStorage.setItem("user_email", data.user.email || "");
+        sessionStorage.setItem("role_id", String(data.user.role_id || ""));
+        sessionStorage.setItem("role_name", (data.user.role_name || "").toLowerCase());
+        sessionStorage.setItem("user_name", data.user.name || "");
         
         if (rememberMe) {
             localStorage.setItem("remember_email", email);

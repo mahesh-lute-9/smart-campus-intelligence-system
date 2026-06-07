@@ -16,6 +16,7 @@ from services.student_service import (
 from services.marks_service import get_subject_wise_marks, get_marks_by_student
 from services.attendance_service import get_attendance
 from services.skills_service import get_student_skills
+from auth.current_user import current_institution_id, current_user, current_user_id
 from auth.auth_middleware import token_required, role_required
 from utils.validators import RequestValidator
 from utils.pagination import PaginationHelper
@@ -40,6 +41,7 @@ def _call_with_institution(func, *args, institution_id=None, **kwargs):
 @role_required("Admin")
 def get_students():
     try:
+        institution_id = current_institution_id()
         # Get pagination parameters
         params, errors = PaginationHelper.get_pagination_params()
         if errors:
@@ -49,7 +51,7 @@ def get_students():
         # Get all students
         all_students = _call_with_institution(
             fetch_all_students,
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            institution_id=institution_id,
         )
         
         # Apply pagination
@@ -92,6 +94,7 @@ def _validate_student_payload(data):
 @role_required("Admin")
 def add_student():
     try:
+        user = current_user()
         validator = _validate_student_payload(request.get_json() or {})
         if validator.has_errors():
             return jsonify({"error": validator.first_error()}), 400
@@ -101,12 +104,12 @@ def add_student():
             validator.validated_data["email"],
             validator.validated_data["department"],
             validator.validated_data["roll_number"],
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            institution_id=user.get("institution_id"),
         )
         record_audit_event(
             "student.created",
-            actor_user_id=request.user.get("user_id"),  # type: ignore[attr-defined]
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            actor_user_id=user.get("user_id"),
+            institution_id=user.get("institution_id"),
             entity_type="student",
             entity_id=student.get("id"),
             metadata={"email": student.get("email"), "department": student.get("department")},
@@ -133,6 +136,7 @@ def add_student():
 @role_required("Admin")
 def update_student(student_id):
     try:
+        user = current_user()
         validator = _validate_student_payload(request.get_json() or {})
         if validator.has_errors():
             return jsonify({"error": validator.first_error()}), 400
@@ -143,12 +147,12 @@ def update_student(student_id):
             validator.validated_data["email"],
             validator.validated_data["department"],
             validator.validated_data["roll_number"],
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            institution_id=user.get("institution_id"),
         )
         record_audit_event(
             "student.updated",
-            actor_user_id=request.user.get("user_id"),  # type: ignore[attr-defined]
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            actor_user_id=user.get("user_id"),
+            institution_id=user.get("institution_id"),
             entity_type="student",
             entity_id=student_id,
             metadata={"email": student.get("email"), "department": student.get("department")},
@@ -177,11 +181,12 @@ def update_student(student_id):
 @role_required("Admin")
 def delete_student(student_id):
     try:
-        student = delete_student_record(student_id, institution_id=request.user.get("institution_id"))  # type: ignore[attr-defined]
+        user = current_user()
+        student = delete_student_record(student_id, institution_id=user.get("institution_id"))
         record_audit_event(
             "student.deleted",
-            actor_user_id=request.user.get("user_id"),  # type: ignore[attr-defined]
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            actor_user_id=user.get("user_id"),
+            institution_id=user.get("institution_id"),
             entity_type="student",
             entity_id=student_id,
             metadata={"email": student.get("email"), "department": student.get("department")},
@@ -205,10 +210,11 @@ def delete_student(student_id):
 @role_required("Student")
 def student_dashboard_api():
     try:
+        institution_id = current_institution_id()
         student = _call_with_institution(
             get_student_record_by_user_id,
-            request.user["user_id"],  # type: ignore[attr-defined]
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            current_user_id(),
+            institution_id=institution_id,
         )
 
         if not student:
@@ -217,7 +223,7 @@ def student_dashboard_api():
         return jsonify(_call_with_institution(
             get_student_dashboard_data,
             student["id"],
-            institution_id=request.user.get("institution_id"),  # type: ignore[attr-defined]
+            institution_id=institution_id,
         )), 200
 
     except Exception as e:
@@ -233,16 +239,17 @@ def student_profile_api():
     Includes: basic info, performance summary, subject performance, marks history, skills
     """
     try:
-        student = get_student_record_by_user_id(request.user["user_id"], institution_id=request.user.get("institution_id"))  # type: ignore
+        institution_id = current_institution_id()
+        student = get_student_record_by_user_id(current_user_id(), institution_id=institution_id)
 
         if not student:
             return jsonify({"error": "Student not found"}), 404
 
         student_id = student["id"]
-        dashboard = get_student_dashboard_data(student_id, institution_id=request.user.get("institution_id"))  # type: ignore[attr-defined]
+        dashboard = get_student_dashboard_data(student_id, institution_id=institution_id)
 
         return jsonify({
-            "profile": get_student_profile(student_id, institution_id=request.user.get("institution_id")),  # type: ignore[attr-defined]
+            "profile": get_student_profile(student_id, institution_id=institution_id),
             "performance_summary": {
                 "readiness_score": dashboard["readiness_score"],
                 "status": dashboard["status"],
@@ -252,8 +259,8 @@ def student_profile_api():
                 "mock_score": dashboard["mock_score"],
                 "skills_score": dashboard["skills_score"],
             },
-            "subject_performance": get_subject_wise_marks(student_id, institution_id=request.user.get("institution_id")),  # type: ignore[attr-defined]
-            "marks_history": get_marks_by_student(student_id, institution_id=request.user.get("institution_id"))[:10],  # type: ignore[attr-defined]
+            "subject_performance": get_subject_wise_marks(student_id, institution_id=institution_id),
+            "marks_history": get_marks_by_student(student_id, institution_id=institution_id)[:10],
             "attendance_summary": {
                 "attendance_percentage": dashboard["attendance"],
                 "recent_records": get_attendance(student_id)[:5],
@@ -269,3 +276,60 @@ def student_profile_api():
 
     except Exception as e:
         return jsonify({"error": "An internal error occurred"}), 500
+
+
+@student_bp.route("/skill-gap")
+@token_required
+@role_required("Student")
+def skill_gap_page():
+    """Render the student skill gap analysis page."""
+    from flask import render_template
+    return render_template("skill_gap.html")
+
+
+@student_bp.route("/student/placements")
+@token_required
+@role_required("Student")
+def my_placement_outcomes():
+    """Get current student's own placement outcomes."""
+    from flask import g
+    from services.placement_statistics_service import get_student_outcomes
+    from services.student_service import get_student_record_by_user_id
+    try:
+        student = get_student_record_by_user_id(g.user["id"], institution_id=g.institution_id)
+        if not student:
+            return jsonify({"success": False, "error": "Student record not found"}), 404
+        outcomes = get_student_outcomes(student["id"], g.institution_id)
+        return jsonify({"success": True, "data": outcomes})
+    except Exception as exc:
+        logger.exception("Failed to fetch student placements")
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@student_bp.route("/leaderboard")
+@token_required
+def leaderboard_page():
+    """Render the campus leaderboard — visible to Student, Faculty, Admin."""
+    from flask import render_template
+    return render_template("leaderboard.html")
+
+
+@student_bp.route("/leaderboard/data")
+@token_required
+def leaderboard_data():
+    """JSON data for the leaderboard — top 50 overall + per-department toppers."""
+    from flask import g
+    from services.readiness_service import get_top_students, get_top_students_by_department
+    try:
+        top_overall = get_top_students(limit=50, institution_id=g.institution_id)
+        top_by_dept = get_top_students_by_department(limit_per_department=3, institution_id=g.institution_id)
+        return jsonify({
+            "success": True,
+            "data": {
+                "overall": top_overall,
+                "by_department": top_by_dept,
+            }
+        })
+    except Exception as exc:
+        logger.exception("leaderboard data error")
+        return jsonify({"success": False, "error": str(exc)}), 500

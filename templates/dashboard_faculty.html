@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Faculty Dashboard - Smart Campus Intelligence{% endblock %}
+{% block title %}Faculty Dashboard - Smart Campus Intelligence{% include "partials/bulk_marks.html" %}
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='ai-assistant-modern.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='ai_assistant.css') }}">
 <style>
     /* Section targeting fix for sidebar clicks */
     .dashboard-premium section { scroll-margin-top: 100px; }
@@ -18,6 +18,14 @@
 <li class="nav-item active" onclick="go('/faculty-dashboard')">
     <i class="fas fa-home nav-icon"></i>
     <span>Dashboard</span>
+<li class="nav-item" onclick="go('/leaderboard')">
+    <i class="fas fa-trophy nav-icon"></i>
+    <span>Leaderboard</span>
+</li>
+<li class="nav-item" onclick="go('/faculty/bulk-marks')">
+    <i class="fas fa-table nav-icon"></i>
+    <span>Bulk Marks</span>
+</li>
 </li>
 <li class="nav-item" onclick="focusFacultySection('classroomSection', event)">
     <i class="fas fa-people-group nav-icon"></i>

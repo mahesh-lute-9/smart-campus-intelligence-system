@@ -7,6 +7,7 @@ import uuid
 
 from flask import Blueprint, jsonify, request, g
 
+from auth.current_user import current_user
 from auth.auth_middleware import SECRET_KEY, JWT_ALGORITHM, token_required
 from config import settings
 from core.rate_limiter import rate_limit
@@ -299,7 +300,7 @@ def login():
 @auth_bp.route("/auth/logout", methods=["POST"])
 @token_required
 def logout():
-    jti = request.user.get("jti")
+    jti = current_user().get("jti")
     if jti:
         try:
             with get_db_connection() as conn:

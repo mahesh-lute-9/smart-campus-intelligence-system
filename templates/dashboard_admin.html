@@ -7,7 +7,6 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='ai-assistant-modern.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='ai_assistant.css') }}">
 <style>
     .dashboard-premium section,
     .dashboard-premium .card { scroll-margin-top: 100px; }
@@ -19,6 +18,15 @@
     <i class="fas fa-home nav-icon"></i>
     <span>Dashboard</span>
     <span class="nav-badge"></span>
+</li>
+<li class="nav-item" onclick="go('/placement/dashboard')">
+    <i class="fas fa-briefcase nav-icon"></i>
+    <span>Placements</span>
+    <span class="nav-badge" style="background:#10b981">NEW</span>
+</li>
+<li class="nav-item" onclick="go('/leaderboard')">
+    <i class="fas fa-trophy nav-icon"></i>
+    <span>Leaderboard</span>
 </li>
 <li class="nav-item" onclick="focusAdminSection('usersSection', event)">
     <i class="fas fa-users-cog nav-icon"></i>
@@ -74,6 +82,14 @@
             </div>
         </div>
 
+        <div class="stat-card stat-card-success" onclick="go('/placement/dashboard')" style="cursor:pointer" title="Open Placement Dashboard">
+            <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+            <div class="stat-content">
+                <p class="stat-label">Placement Rate</p>
+                <p class="stat-value" id="adminPlacementRate">—</p>
+                <p class="stat-sub" id="adminPlacementSub" style="font-size:11px;color:#64748b">Click to view full analytics</p>
+            </div>
+        </div>
         <div class="stat-card stat-card-warning">
             <div class="stat-icon"><i class="fas fa-database"></i></div>
             <div class="stat-content">
