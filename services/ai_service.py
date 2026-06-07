@@ -35,8 +35,8 @@ class AIService:
             if not settings.gemini_api_key:
                 return None
             try:
-                genai.configure(api_key=settings.gemini_api_key)
-                cls._model = genai.GenerativeModel(
+                genai.configure(api_key=settings.gemini_api_key)  # type: ignore
+                cls._model = genai.GenerativeModel(  # type: ignore
                     model_name=settings.gemini_model,
                     system_instruction=_SYSTEM_INSTRUCTION,
                 )
@@ -104,7 +104,18 @@ class AIService:
             response = model.generate_content(prompt)
             return response.text
         except Exception as exc:
+            error_str = str(exc)
             logger.error("Gemini student chat failed: %s", exc)
+            
+            # Check for quota exceeded error
+            if "quota" in error_str.lower() or "429" in error_str:
+                return (
+                    "The AI service is temporarily unavailable due to high usage. "
+                    "Your data is still visible on your dashboard — please check it directly. "
+                    "Try again in a moment."
+                )
+            
+            # Generic error
             return (
                 "I'm having trouble connecting right now. "
                 "Your data is still visible on your dashboard — please check it directly."
@@ -141,7 +152,17 @@ class AIService:
             response = model.generate_content(prompt)
             return response.text
         except Exception as exc:
+            error_str = str(exc)
             logger.error("Gemini faculty chat failed: %s", exc)
+            
+            # Check for quota exceeded error
+            if "quota" in error_str.lower() or "429" in error_str:
+                return (
+                    "The AI service is temporarily unavailable due to high usage. "
+                    "Please check your dashboard data directly. Try again in a moment."
+                )
+            
+            # Generic error
             return (
                 "I'm having trouble connecting right now. "
                 "Please check your dashboard data directly."
