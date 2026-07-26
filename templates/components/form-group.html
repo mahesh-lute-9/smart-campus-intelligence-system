@@ -1,0 +1,88 @@
+{# Reusable Form Group Component #}
+{% macro form_group(label="", name="", type="text", value="", placeholder="", required=False, help_text="", error=None, classes="") %}
+<div class="form-group {{ classes }}">
+  {% if label %}
+    <label for="{{ name }}">
+      {{ label }}
+      {% if required %}<span class="required">*</span>{% endif %}
+    </label>
+  {% endif %}
+  
+  {% if type == "textarea" %}
+    <textarea 
+      id="{{ name }}" 
+      name="{{ name }}" 
+      placeholder="{{ placeholder }}"
+      {% if required %}required aria-required="true"{% endif %}
+      {% if error %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+      class="{% if error %}border-danger{% endif %}"
+    >{{ value }}</textarea>
+  
+  {% elif type == "select" %}
+    <select 
+      id="{{ name }}" 
+      name="{{ name }}"
+      {% if required %}required aria-required="true"{% endif %}
+      {% if error %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+      class="{% if error %}border-danger{% endif %}"
+    >
+      <option value="">{{ placeholder or 'Select an option' }}</option>
+      {{ caller() }}
+    </select>
+  
+  {% elif type == "checkbox" %}
+    <div class="d-flex align-center">
+      <input 
+        type="checkbox" 
+        id="{{ name }}" 
+        name="{{ name }}"
+        value="1"
+        {% if value %}checked{% endif %}
+        class="{% if error %}border-danger{% endif %}"
+      />
+      <label for="{{ name }}" class="mb-0" style="margin-left: var(--spacing-sm);">
+        {{ label }}
+      </label>
+    </div>
+  
+  {% elif type == "radio" %}
+    <div class="d-flex align-center">
+      <input 
+        type="radio" 
+        id="{{ name }}" 
+        name="{{ name }}"
+        value="{{ value }}"
+        {% if value %}checked{% endif %}
+        class="{% if error %}border-danger{% endif %}"
+      />
+      <label for="{{ name }}" class="mb-0" style="margin-left: var(--spacing-sm);">
+        {{ label }}
+      </label>
+    </div>
+  
+  {% else %}
+    <input 
+      type="{{ type }}" 
+      id="{{ name }}" 
+      name="{{ name }}"
+      value="{{ value }}"
+      placeholder="{{ placeholder }}"
+      {% if required %}required aria-required="true"{% endif %}
+      {% if error %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+      class="{% if error %}border-danger{% endif %}"
+    />
+  {% endif %}
+  
+  {% if help_text %}
+    <small id="{{ name }}-help" class="text-muted" style="display: block; margin-top: var(--spacing-xs);">
+      {{ help_text }}
+    </small>
+  {% endif %}
+  
+  {% if error %}
+    <small id="{{ name }}-error" class="text-danger" style="display: block; margin-top: var(--spacing-xs);">
+      {{ error }}
+    </small>
+  {% endif %}
+</div>
+{% endmacro %}

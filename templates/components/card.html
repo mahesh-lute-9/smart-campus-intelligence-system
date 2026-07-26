@@ -1,0 +1,29 @@
+{# Reusable Card Component #}
+{% macro card(title=None, content=None, actions=None, classes="", footer=None) %}
+<div class="card {{ classes }}">
+  {% if title or actions %}
+  <div class="card-header">
+    {% if title %}
+      <h5>{{ title }}</h5>
+    {% endif %}
+    {% if actions %}
+      <div class="card-actions">
+        {{ actions | safe }}
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  {% if content %}
+  <div class="card-body">
+    {{ content | safe }}
+  </div>
+  {% endif %}
+  
+  {% if footer %}
+  <div class="card-footer">
+    {{ footer | safe }}
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}

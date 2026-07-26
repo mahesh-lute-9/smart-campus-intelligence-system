@@ -1,0 +1,24 @@
+{# Reusable Stat Box Component #}
+{% macro stat_box(label="", value="", unit="", icon=None, trend=None, trend_text="", classes="") %}
+<div class="stat-box {{ classes }}">
+  {% if icon %}
+    <div style="font-size: var(--font-size-2xl); margin-bottom: var(--spacing-md);">
+      {{ icon | safe }}
+    </div>
+  {% endif %}
+  
+  <div class="stat-box-label">{{ label }}</div>
+  
+  <div class="stat-box-value">
+    {{ value }}<span style="font-size: var(--font-size-lg); color: var(--gray-600);">{{ unit }}</span>
+  </div>
+  
+  {% if trend %}
+    <div style="margin-top: var(--spacing-md);">
+      <span style="color: {% if trend == 'up' %}var(--success){% else %}var(--danger){% endif %}; font-weight: 500;">
+        {% if trend == 'up' %}↑{% else %}↓{% endif %} {{ trend_text }}
+      </span>
+    </div>
+  {% endif %}
+</div>
+{% endmacro %}

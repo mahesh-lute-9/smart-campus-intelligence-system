@@ -1,0 +1,56 @@
+{# Reusable Pagination Component #}
+{% macro pagination(current_page=1, total_pages=1, base_url="", param_name="page") %}
+{% if total_pages > 1 %}
+<nav class="d-flex justify-center" aria-label="Pagination Navigation">
+  <div class="pagination">
+    {# Previous Button #}
+    {% if current_page > 1 %}
+      <a href="{{ base_url }}?{{ param_name }}=1" title="First page" aria-label="First page">«</a>
+      <a href="{{ base_url }}?{{ param_name }}={{ current_page - 1 }}" title="Previous page" aria-label="Previous page">‹</a>
+    {% else %}
+      <button disabled aria-label="First page">«</button>
+      <button disabled aria-label="Previous page">‹</button>
+    {% endif %}
+    
+    {# Page Numbers #}
+    {% set start = [current_page - 2, 1] | max %}
+    {% set end = [current_page + 2, total_pages] | min %}
+    
+    {% if start > 1 %}
+      <a href="{{ base_url }}?{{ param_name }}=1">1</a>
+      {% if start > 2 %}
+        <span style="padding: var(--spacing-sm) var(--spacing-md);">...</span>
+      {% endif %}
+    {% endif %}
+    
+    {% for page_num in range(start, end + 1) %}
+      {% if page_num == current_page %}
+        <button class="active" aria-current="page" aria-label="Current page, page {{ page_num }}">
+          {{ page_num }}
+        </button>
+      {% else %}
+        <a href="{{ base_url }}?{{ param_name }}={{ page_num }}" aria-label="Go to page {{ page_num }}">
+          {{ page_num }}
+        </a>
+      {% endif %}
+    {% endfor %}
+    
+    {% if end < total_pages %}
+      {% if end < total_pages - 1 %}
+        <span style="padding: var(--spacing-sm) var(--spacing-md);">...</span>
+      {% endif %}
+      <a href="{{ base_url }}?{{ param_name }}={{ total_pages }}">{{ total_pages }}</a>
+    {% endif %}
+    
+    {# Next Button #}
+    {% if current_page < total_pages %}
+      <a href="{{ base_url }}?{{ param_name }}={{ current_page + 1 }}" title="Next page" aria-label="Next page">›</a>
+      <a href="{{ base_url }}?{{ param_name }}={{ total_pages }}" title="Last page" aria-label="Last page">»</a>
+    {% else %}
+      <button disabled aria-label="Next page">›</button>
+      <button disabled aria-label="Last page">»</button>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}
+{% endmacro %}

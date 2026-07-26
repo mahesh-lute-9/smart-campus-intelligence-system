@@ -1,0 +1,52 @@
+{# Reusable Alert Component #}
+{% macro alert(type="info", title=None, message="", closable=True, classes="") %}
+<div class="alert alert-{{ type }} {{ classes }}" role="alert">
+  <div>
+    {% if title %}
+      <strong>{{ title }}</strong>
+      {% if message %}<br/>{% endif %}
+    {% endif %}
+    {% if message %}
+      {{ message | safe }}
+    {% endif %}
+  </div>
+  
+  {% if closable %}
+    <button 
+      type="button" 
+      class="alert-close" 
+      onclick="this.parentElement.style.display='none';"
+      aria-label="Close alert"
+    >
+      ✕
+    </button>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# Alert List - for multiple validation errors #}
+{% macro alert_list(type="danger", messages=[], closable=True) %}
+{% if messages %}
+<div class="alert alert-{{ type }}" role="alert">
+  <div>
+    <strong>{{ messages | length }} error{{ 's' if messages | length > 1 else '' }}:</strong>
+    <ul style="margin: var(--spacing-sm) 0 0 var(--spacing-lg);">
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  
+  {% if closable %}
+    <button 
+      type="button" 
+      class="alert-close" 
+      onclick="this.parentElement.style.display='none';"
+      aria-label="Close alert"
+    >
+      ✕
+    </button>
+  {% endif %}
+</div>
+{% endif %}
+{% endmacro %}
