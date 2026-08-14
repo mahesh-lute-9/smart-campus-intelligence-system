@@ -1,8 +1,8 @@
 <div align="center">
 
-# Smart Campus Intelligence System
+# Placement Readiness Intelligence System
 
-**Production-grade multi-tenant SaaS for campus placement analytics, student success tracking, and AI-assisted advising.**
+**Production-grade multi-tenant SaaS for Placement Readiness, Skill Gaps, Company Fit, Intervention workflows, and Outcome Tracking.**
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Flask 3.1](https://img.shields.io/badge/Flask-3.1-000?style=flat-square&logo=flask)](https://flask.palletsprojects.com)
@@ -17,12 +17,21 @@
 
 ## What This Is
 
-A closed-loop placement intelligence platform built for campus placement cells. Not a CRUD portal — a system where every data point feeds back into actionable intelligence:
+A closed-loop placement intelligence platform built for campus placement cells. A readiness-to-outcome product — not a generic campus portal — where every data point moves through the same placement strategy loop:
 
-- **Data flows in** → Admin imports marks/attendance via CSV; Faculty records class data; Students log skills and mock tests
-- **Intelligence is generated** → Readiness score, company eligibility, per-company skill gap analysis, at-risk detection, AI advisor
-- **Outcomes are tracked** → Admin records actual placements (who, where, what package)
-- **Analytics close the loop** → Dept-wise placement rates, monthly trend, package distribution, leaderboard
+- **Student profile data enters** → Admin imports students, marks, and attendance via CSV; Faculty records class data; Students maintain skills, goals, resumes, and mock tests
+- **Placement Readiness is calculated** → Readiness score, Company Fit eligibility, per-company Skill Gaps, and at-risk detection are generated
+- **Next actions are prioritized** → Students receive Company Fit guidance and Skill Gap action plans before drives
+- **Interventions close risk gaps** → Faculty sees at-risk students and logs Intervention notes for follow-up
+- **Outcome Tracking improves strategy** → Admin records actual placements and uses dept-wise rates, trends, packages, and leaderboards to refine placement strategy
+
+### Product Loop
+
+1. **Student imports/profile data enters the system** through admin CSV uploads, faculty marks/attendance entry, and student-owned profile updates.
+2. **Placement Readiness and Company Fit are calculated** from attendance, marks, skills, mock scores, and company criteria.
+3. **Students receive prioritized next actions** that explain Skill Gaps, stretch-fit companies, and the fastest readiness improvements.
+4. **Faculty sees at-risk students and logs Interventions** so every readiness issue has an accountable follow-up.
+5. **Admin uses Outcome Tracking to improve placement strategy** by comparing readiness signals with actual offers, packages, departments, and drive results.
 
 > Built as a portfolio project for product-based company interviews — every architectural tradeoff is documented.
 
@@ -57,54 +66,54 @@ Full diagrams, request lifecycle, RBAC matrix: [docs/ARCHITECTURE.md](docs/ARCHI
 
 ---
 
-## Data Flow by Role
+## Closed-Loop Data Flow by Role
 
-### Student — What goes in / what comes back
+### Student — Profile Data → Placement Readiness → Next Actions
 
 | Input | Powers |
 |-------|--------|
-| Skills (self-reported) | Readiness score (20%), company matching, skill gap page |
-| Mock test scores | Readiness score (10%), company eligibility |
-| Goals + milestones | Goal tracker, AI advisor context |
+| Skills (self-reported) | Placement Readiness score (20%), Company Fit matching, Skill Gaps page |
+| Mock test scores | Placement Readiness score (10%), company eligibility |
+| Goals + milestones | Prioritized next actions and AI advisor context |
 | Media uploads (resume, certs) | PostgreSQL vault, downloadable links |
 
 | Output | Source |
 |--------|--------|
-| **Placement readiness score** | `attendance×0.30 + marks×0.40 + skills×0.20 + mock×0.10` |
-| **Company eligibility list** | Match engine vs. live company minimums |
-| **Skill gap analysis** | Per-company: exact marks/attendance/skills delta + action plan |
+| **Placement Readiness score** | `attendance×0.30 + marks×0.40 + skills×0.20 + mock×0.10` |
+| **Company Fit eligibility list** | Match engine vs. live company minimums |
+| **Skill Gaps analysis** | Per-company: exact marks/attendance/skills delta + action plan |
 | **Leaderboard rank** | Top students ranked by readiness (privacy: first name + last initial) |
 | **AI Advisor** | Gemini, injected with student's actual score data |
-| **Placement outcomes** | Their own offers recorded by admin |
+| **Outcome Tracking** | Their own offers recorded by admin |
 
-### Faculty — What goes in / what comes back
+### Faculty — At-Risk Visibility → Intervention Logging
 
 | Input | Powers |
 |-------|--------|
-| **Bulk marks entry** (new) | Readiness score (40%), at-risk detection — whole class at once |
-| Attendance per student | Readiness score (30%), dropout risk |
-| Intervention notes | Audit trail, admin visibility |
+| **Bulk marks entry** (new) | Placement Readiness score (40%), at-risk detection — whole class at once |
+| Attendance per student | Placement Readiness score (30%), dropout risk |
+| Intervention notes | Intervention audit trail and admin visibility |
 
 | Output | Source |
 |--------|--------|
 | Class analytics | Dept-wide attendance + marks distribution |
-| At-risk watchlist | Students below 60% readiness, sortable by risk |
+| At-risk watchlist | Students below 60% Placement Readiness, sortable by risk |
 | AI class insights | Gemini, with class-level aggregate data |
 | Per-student detail | Full readiness breakdown on click |
 
-### Admin — What goes in / what comes back
+### Admin — Outcome Tracking → Placement Strategy
 
 | Input | Powers |
 |-------|--------|
-| CSV bulk import (students, marks, attendance) | All downstream analytics |
-| **Placement outcomes** (company, package, student) | Placement statistics dashboard |
+| CSV bulk import (students, marks, attendance) | Student profile data for all downstream Placement Readiness analytics |
+| **Outcome Tracking** (company, package, student) | Placement statistics dashboard |
 | **Drive records** (campus visit events) | Company visit history |
 | User/dept/subject management | Institution structure |
 
 | Output | Source |
 |--------|--------|
-| Institution KPI summary | Aggregated readiness CTE |
-| **Placement statistics dashboard** | Rate, avg/max/median package, dept breakdown, monthly trend |
+| Institution KPI summary | Aggregated Placement Readiness CTE |
+| **Outcome Tracking dashboard** | Rate, avg/max/median package, dept breakdown, monthly trend |
 | **Leaderboard** (full names) | Top students by readiness |
 | Audit trail | Tamper-evident log of every sensitive action |
 | CSV / Excel / PDF exports | Tenant-scoped bulk download |
@@ -116,9 +125,9 @@ Full diagrams, request lifecycle, RBAC matrix: [docs/ARCHITECTURE.md](docs/ARCHI
 
 | Feature | Student | Faculty | Admin |
 |---------|:-------:|:-------:|:-----:|
-| Placement readiness score | ✅ own | ✅ class | ✅ all |
-| Company matching | ✅ | — | — |
-| **Skill gap analysis** | ✅ | — | — |
+| Placement Readiness score | ✅ own | ✅ class | ✅ all |
+| Company Fit matching | ✅ | — | — |
+| **Skill Gaps analysis** | ✅ | — | — |
 | **Leaderboard** | ✅ (anonymised) | ✅ | ✅ (full) |
 | AI advisor | ✅ | ✅ class | — |
 | Goals + milestones | ✅ | — | — |
@@ -127,12 +136,12 @@ Full diagrams, request lifecycle, RBAC matrix: [docs/ARCHITECTURE.md](docs/ARCHI
 | Media vault | ✅ | — | — |
 | **Bulk marks entry** | — | ✅ | — |
 | Class analytics | — | ✅ | — |
-| At-risk watchlist | — | ✅ | ✅ |
+| At-risk readiness watchlist | — | ✅ | ✅ |
 | Intervention log | — | ✅ record | ✅ view |
 | User management | — | — | ✅ |
 | CSV import / export | — | — | ✅ |
-| **Placement outcomes** | view own | — | ✅ record |
-| **Placement analytics** | — | — | ✅ |
+| **Outcome Tracking** | view own | — | ✅ record |
+| **Placement strategy analytics** | — | — | ✅ |
 | Notice board | view | — | ✅ |
 | Audit trail | — | — | ✅ |
 | Health endpoints | — | — | ✅ |
@@ -145,10 +154,10 @@ Full diagrams, request lifecycle, RBAC matrix: [docs/ARCHITECTURE.md](docs/ARCHI
 |------|----------------|
 | **Security** | HttpOnly cookie JWT (JS can never read token — XSS-safe), bcrypt timing-safe login, token blacklist table, OTP reset, rate limiting, CSP + HSTS + X-Frame-Options |
 | **Multi-tenancy** | Shared-schema: `institution_id` on every table, JWT-carried tenant, service-layer scoping, regression-tested for cross-tenant leakage |
-| **Readiness Engine** | `final_score = att×0.30 + marks×0.40 + skills×0.20 + mock×0.10` — SQL CTE per request |
-| **Company Matching** | Per-company criterion gap: marks/attendance/mock/skills vs. minimums, weighted match score, three eligibility tiers (ready / near-miss / stretch) |
-| **Skill Gap Analysis** | Student-facing page: fill bars, exact delta per criterion, auto-generated action plan prose |
-| **Placement Statistics** | Placement rate, avg/max/median package, dept-wise breakdown, monthly trend chart, package distribution bands, company rankings |
+| **Placement Readiness Engine** | `final_score = att×0.30 + marks×0.40 + skills×0.20 + mock×0.10` — SQL CTE per request |
+| **Company Fit Matching** | Per-company criterion gap: marks/attendance/mock/skills vs. minimums, weighted match score, three eligibility tiers (ready / near-miss / stretch) |
+| **Skill Gaps Analysis** | Student-facing page: fill bars, exact delta per criterion, auto-generated action plan prose |
+| **Outcome Tracking & Strategy** | Placement rate, avg/max/median package, dept-wise breakdown, monthly trend chart, package distribution bands, company rankings |
 | **Bulk Marks Entry** | Faculty enters marks for entire class in one table → manual upsert (UPDATE → INSERT if missing) — no unique-constraint dependency |
 | **Leaderboard** | Student-visible (anonymised) + admin-visible (full names), filterable by dept, calling student's rank highlighted |
 | **Data pipeline** | 16 idempotent SQL migrations, psycopg2 ThreadedConnectionPool, 30+ composite indexes |
@@ -329,9 +338,9 @@ Health
   that eliminates XSS token-theft. Institution isolation enforced at JWT payload, service layer,
   and regression-tested with cross-tenant leakage tests across 85 automated tests.
 
-• Engineered a closed-loop placement intelligence platform: readiness scoring engine
-  (attendance 30% + marks 40% + skills 20% + mock 10%), per-company skill gap analysis with
-  exact delta and auto-generated action plans, and a placement outcomes tracker feeding an
+• Engineered a closed-loop placement intelligence platform: Placement Readiness scoring engine
+  (attendance 30% + marks 40% + skills 20% + mock 10%), per-company Skill Gaps analysis with
+  exact delta and auto-generated action plans, and an Outcome Tracking workflow feeding an
   admin analytics dashboard (rate, avg/max package, dept breakdown, monthly trend).
 
 • Shipped production features across all roles — Faculty bulk class marks entry with manual

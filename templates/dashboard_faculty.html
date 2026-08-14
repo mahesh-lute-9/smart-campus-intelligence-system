@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Faculty Dashboard - Smart Campus Intelligence{% include "partials/bulk_marks.html" %}
+{% block title %}Faculty Intervention Dashboard{% include "partials/bulk_marks.html" %}
 {% endblock %}
 
 {% block extra_css %}
@@ -11,41 +11,41 @@
 </style>
 {% endblock %}
 
-{% block breadcrumb %}Faculty Portal{% endblock %}
-{% block page_title %}Faculty Command Center{% endblock %}
+{% block breadcrumb %}Faculty Intervention Loop{% endblock %}
+{% block page_title %}At-Risk Students & Interventions{% endblock %}
 
 {% block sidebar_nav %}
 <li class="nav-item active" onclick="go('/faculty-dashboard')">
     <i class="fas fa-home nav-icon"></i>
-    <span>Dashboard</span>
+    <span>At-Risk View</span>
 <li class="nav-item" onclick="go('/leaderboard')">
     <i class="fas fa-trophy nav-icon"></i>
-    <span>Leaderboard</span>
+    <span>Readiness Rank</span>
 </li>
 <li class="nav-item" onclick="go('/faculty/bulk-marks')">
     <i class="fas fa-table nav-icon"></i>
-    <span>Bulk Marks</span>
+    <span>Readiness Inputs</span>
 </li>
 </li>
 <li class="nav-item" onclick="focusFacultySection('classroomSection', event)">
     <i class="fas fa-people-group nav-icon"></i>
-    <span>Classroom</span>
+    <span>Student Inputs</span>
 </li>
 <li class="nav-item" onclick="focusFacultySection('interventionSection', event)">
     <i class="fas fa-hand-holding-heart nav-icon"></i>
-    <span>Interventions</span>
+    <span>Intervention Log</span>
 </li>
 <li class="nav-item" onclick="focusFacultySection('noticesSection', event)">
     <i class="fas fa-bullhorn nav-icon"></i>
-    <span>Notice Board</span>
+    <span>Placement Alerts</span>
 </li>
 <li class="nav-item" onclick="focusFacultySection('resourcesSection', event)">
     <i class="fas fa-folder-open nav-icon"></i>
-    <span>Study Resources</span>
+    <span>Skill Gap Resources</span>
 </li>
 <li class="nav-item" onclick="focusFacultySection('facultyMediaSection', event)">
     <i class="fas fa-folder nav-icon"></i>
-    <span>Files</span>
+    <span>Evidence Files</span>
 </li>
 {% endblock %}
 
@@ -54,8 +54,8 @@
     <!-- Section Header -->
     <div class="section-header">
         <div>
-            <h2 class="section-title">Faculty Overview</h2>
-            <p class="section-subtitle">Manage academic performance and student interventions.</p>
+            <h2 class="section-title">Faculty Intervention Overview</h2>
+            <p class="section-subtitle">Review Placement Readiness inputs, identify at-risk students, and log Interventions that move students toward Company Fit.</p>
         </div>
         <button class="btn btn-primary btn-sm" onclick="loadFacultyDashboard()">
             <i class="fas fa-sync"></i>
@@ -82,7 +82,7 @@
         <div class="stat-card stat-card-warning">
             <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
             <div class="stat-content">
-                <p class="stat-label">At Risk</p>
+                <p class="stat-label">At-Risk Readiness</p>
                 <p class="stat-value" id="facultyAtRiskCount">0</p>
             </div>
         </div>
@@ -95,10 +95,10 @@
         </div>
     </div>
 
-    <!-- Classroom Workflow -->
+    <!-- Readiness Input Workflow -->
     <section id="classroomSection" class="card card-premium" style="margin-bottom: 32px;">
         <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-people-group"></i> Classroom Workflow</h3>
+            <h3 class="card-title"><i class="fas fa-people-group"></i> Readiness Input Workflow</h3>
         </div>
         <div class="card-body">
             <div class="grid-2col" style="margin-bottom: 20px;">
@@ -132,10 +132,10 @@
         </div>
     </section>
 
-    <!-- Intervention Watchlist -->
+    <!-- At-Risk Intervention Watchlist -->
     <section id="interventionSection" class="card card-premium" style="margin-bottom: 32px;">
         <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-hand-holding-heart"></i> Intervention Watchlist</h3>
+            <h3 class="card-title"><i class="fas fa-hand-holding-heart"></i> At-Risk Intervention Watchlist</h3>
         </div>
         <div class="card-body">
             <div class="table-wrapper">
@@ -160,20 +160,20 @@
     <!-- Notice Board -->
     <section id="noticesSection" class="card card-premium" style="margin-bottom: 32px;">
         <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-bullhorn"></i> Campus Notices</h3>
+            <h3 class="card-title"><i class="fas fa-bullhorn"></i> Placement Readiness Alerts</h3>
         </div>
         <div class="card-body">
             <div class="grid-2col">
                 <div>
-                    <h4 class="mb-3">Post a Notice</h4>
+                    <h4 class="mb-3">Post a Placement Alert</h4>
                     <form onsubmit="submitFacultyNotice(event)">
                         <div class="form-group">
                             <input class="form-control" id="facultyNoticeTitle" placeholder="Title" required>
                         </div>
                         <div class="form-group">
-                            <textarea class="form-control" id="facultyNoticeContent" rows="3" placeholder="Content..." required></textarea>
+                            <textarea class="form-control" id="facultyNoticeContent" rows="3" placeholder="Readiness action or Skill Gap resource..." required></textarea>
                         </div>
-                        <button class="btn btn-primary btn-block">Post Notice</button>
+                        <button class="btn btn-primary btn-block">Post Alert</button>
                     </form>
                 </div>
                 <div class="custom-scrollbar" style="max-height: 300px; overflow-y: auto;">
@@ -186,7 +186,7 @@
     <!-- Resources Section -->
     <section id="resourcesSection" class="card card-premium" style="margin-bottom: 32px;">
         <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-folder-open"></i> Study Resources</h3>
+            <h3 class="card-title"><i class="fas fa-folder-open"></i> Skill Gap Resources</h3>
         </div>
         <div class="card-body">
             <div class="grid-2col">
@@ -228,8 +228,8 @@
     </section>
 
     {% set media_section_id = 'facultyMediaSection' %}
-    {% set media_title = 'Faculty Files' %}
-    {% set media_subtitle = 'Upload class material, reports, and faculty documents' %}
+    {% set media_title = 'Intervention & Readiness Files' %}
+    {% set media_subtitle = 'Upload class evidence, Skill Gap resources, and Intervention reports' %}
     {% include 'partials/media_panel.html' %}
 </div>
 {% endblock %}
@@ -294,7 +294,7 @@
                 body: JSON.stringify(data)
             });
             if (res.error) throw new Error(res.error);
-            showToast('Notice posted', 'success');
+            showToast('Placement alert posted', 'success');
             e.target.reset();
             loadFacultyNotices();
         } catch (error) {
@@ -309,7 +309,7 @@
         try {
             const res = await fetchAuth('/api/notices/' + id, { method: 'DELETE' });
             if (res.error) throw new Error(res.error);
-            showToast('Notice deleted', 'success');
+            showToast('Placement alert deleted', 'success');
             loadFacultyNotices();
         } catch (e) {
             showToast(e.message, 'error');

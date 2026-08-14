@@ -1,40 +1,40 @@
 {% extends "base.html" %}
-{% block title %}Student Dashboard – Smart Campus Intelligence{% endblock %}
+{% block title %}Student Placement Readiness{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='ai-assistant-modern.css') }}">
 {% endblock %}
 
-{% block breadcrumb %}Dashboard{% endblock %}
-{% block page_title %}Welcome back, Student{% endblock %}
+{% block breadcrumb %}Student Readiness Loop{% endblock %}
+{% block page_title %}Placement Readiness & Next Actions{% endblock %}
 
 {% block sidebar_nav %}
 <li class="nav-item active" onclick="go('/student-dashboard')">
-    <i class="fas fa-home nav-icon"></i><span>Dashboard</span><span class="nav-badge"></span>
+    <i class="fas fa-home nav-icon"></i><span>Readiness</span><span class="nav-badge"></span>
 </li>
 <li class="nav-item" onclick="go('/student-progress')">
-    <i class="fas fa-chart-line nav-icon"></i><span>Progress</span>
+    <i class="fas fa-chart-line nav-icon"></i><span>Next Actions</span>
 </li>
 <li class="nav-item" onclick="go('/student-skills')">
-    <i class="fas fa-star nav-icon"></i><span>Skills</span>
+    <i class="fas fa-star nav-icon"></i><span>Skill Gaps</span>
 </li>
 <li class="nav-item" onclick="go('/skill-gap')">
-    <i class="fas fa-chart-bar nav-icon"></i><span>Skill Gap</span>
+    <i class="fas fa-chart-bar nav-icon"></i><span>Company Fit</span>
 </li>
 <li class="nav-item" onclick="go('/leaderboard')">
-    <i class="fas fa-trophy nav-icon"></i><span>Leaderboard</span>
+    <i class="fas fa-trophy nav-icon"></i><span>Readiness Rank</span>
 </li>
 <li class="nav-item" onclick="go('/student-profile')">
-    <i class="fas fa-user-circle nav-icon"></i><span>Profile</span>
+    <i class="fas fa-user-circle nav-icon"></i><span>Profile Data</span>
 </li>
 <li class="nav-item" onclick="go('/goals')">
-    <i class="fas fa-bullseye nav-icon"></i><span>Goals</span>
+    <i class="fas fa-bullseye nav-icon"></i><span>Action Plan</span>
 </li>
 <li class="nav-item" onclick="go('/notifications')">
-    <i class="fas fa-bell nav-icon"></i><span>Notifications</span>
+    <i class="fas fa-bell nav-icon"></i><span>Placement Alerts</span>
 </li>
 <li class="nav-item" onclick="document.getElementById('studentMediaSection')?.scrollIntoView({behavior:'smooth', block:'start'})">
-    <i class="fas fa-folder nav-icon"></i><span>Files</span>
+    <i class="fas fa-folder nav-icon"></i><span>Resume Files</span>
 </li>
 {% endblock %}
 
@@ -54,7 +54,7 @@
         <div class="stat-card stat-card-success">
             <div class="stat-icon"><i class="fas fa-trophy"></i></div>
             <div class="stat-content">
-                <p class="stat-label">Placement Status</p>
+                <p class="stat-label">Outcome Status</p>
                 <p class="stat-value" id="placement">–</p>
             </div>
         </div>
@@ -68,7 +68,7 @@
         <div class="stat-card stat-card-info">
             <div class="stat-icon"><i class="fas fa-signal"></i></div>
             <div class="stat-content">
-                <p class="stat-label">Overall Status</p>
+                <p class="stat-label">Company Fit</p>
                 <p class="stat-value" id="status">–</p>
             </div>
         </div>
@@ -78,7 +78,7 @@
     <div class="grid-2col" style="margin-bottom:28px">
         <div class="card card-premium">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-chart-bar"></i> Performance Breakdown</h3>
+                <h3 class="card-title"><i class="fas fa-chart-bar"></i> Placement Readiness Breakdown</h3>
             </div>
             <div class="card-body">
                 <div class="chart-container">
@@ -88,7 +88,7 @@
         </div>
         <div class="card card-premium">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-list-check"></i> Key Indicators</h3>
+                <h3 class="card-title"><i class="fas fa-list-check"></i> Readiness Inputs</h3>
             </div>
             <div class="card-body">
                 <div class="metric-grid">
@@ -102,7 +102,7 @@
                     <div class="metric-item">
                         <div class="metric-icon marks"><i class="fas fa-pencil-alt"></i></div>
                         <div class="metric-text">
-                            <p class="metric-label">Avg Marks</p>
+                            <p class="metric-label">Marks Input</p>
                             <p class="metric-large" id="marks">–</p>
                         </div>
                     </div>
@@ -111,7 +111,7 @@
                             <i class="fas fa-file-alt"></i>
                         </div>
                         <div class="metric-text">
-                            <p class="metric-label">Mock Score</p>
+                            <p class="metric-label">Mock Readiness</p>
                             <p class="metric-large" id="mockScore">–</p>
                         </div>
                     </div>
@@ -120,7 +120,7 @@
                             <i class="fas fa-tools"></i>
                         </div>
                         <div class="metric-text">
-                            <p class="metric-label">Skills</p>
+                            <p class="metric-label">Skill Signals</p>
                             <p class="metric-large" id="skillsCount">–</p>
                         </div>
                     </div>
@@ -129,11 +129,11 @@
         </div>
     </div>
 
-    <!-- Notice Board + Study Materials -->
+    <!-- Placement Alerts + Skill Gap Resources -->
     <div class="grid-2col" style="margin-bottom:28px">
         <div class="card card-premium">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-bullhorn"></i> Notice Board</h3>
+                <h3 class="card-title"><i class="fas fa-bullhorn"></i> Placement Alerts</h3>
             </div>
             <div class="card-body" style="padding:0">
                 <ul class="insight-list custom-scrollbar" id="studentNoticesList" style="max-height:240px;padding:16px">
@@ -143,7 +143,7 @@
         </div>
         <div class="card card-premium">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-folder-open"></i> Study Materials</h3>
+                <h3 class="card-title"><i class="fas fa-folder-open"></i> Skill Gap Resources</h3>
             </div>
             <div class="card-body" style="padding:0">
                 <div class="table-wrapper custom-scrollbar" style="max-height:240px">
@@ -159,14 +159,14 @@
     </div>
 
     {% set media_section_id = 'studentMediaSection' %}
-    {% set media_title = 'My Files' %}
-    {% set media_subtitle = 'Upload resumes, notes, certificates, and other campus files' %}
+    {% set media_title = 'Resume & Evidence Files' %}
+    {% set media_subtitle = 'Upload resumes, certificates, and evidence that supports Company Fit' %}
     {% include 'partials/media_panel.html' %}
 
     <!-- Profile + Insights -->
     <div class="card card-premium">
         <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-user-circle"></i> Profile &amp; Placement Insights</h3>
+            <h3 class="card-title"><i class="fas fa-user-circle"></i> Profile Data &amp; Prioritized Next Actions</h3>
         </div>
         <div class="card-body">
             <div class="grid-2col">
@@ -177,7 +177,7 @@
                     <div class="profile-row"><span class="profile-label">Email</span><span class="profile-value" id="profileEmail">–</span></div>
                 </div>
                 <ul class="insight-list" id="placementReasons">
-                    <li class="insight-item text-muted fs-13">Loading placement insights…</li>
+                    <li class="insight-item text-muted fs-13">Loading Company Fit and Skill Gap next actions…</li>
                 </ul>
             </div>
         </div>
@@ -197,7 +197,7 @@
     // ── Load dashboard KPIs ──────────────────────────────────────────────
     loadDashboard();
 
-    // ── Notice Board ────────────────────────────────────────────────────
+    // ── Placement Alerts ────────────────────────────────────────────────────
     async function loadStudentNotices() {
         const list = document.getElementById('studentNoticesList');
         try {
@@ -218,7 +218,7 @@
         }
     }
 
-    // ── Study Materials ─────────────────────────────────────────────────
+    // ── Skill Gap Resources ─────────────────────────────────────────────────
     async function loadStudentResources() {
         const tbody = document.getElementById('studentResourcesTable');
         try {
